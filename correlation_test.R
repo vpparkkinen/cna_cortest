@@ -15,6 +15,11 @@ facs <- lapply(facs, all.vars) # and then the conjuncts
 res <- vector("list", length(disjuncts))
 names(res) <- disjuncts
 
+#calculate unconditional correlation if lhs is single disjunct with single conjunct
+if(length(disjuncts) == 1 & nchar(disjuncts[1]) == 1){
+  res <- cor(data[toupper(disjuncts)], data[toupper(rhs)])
+  print(res)
+}
 for(dis in seq_along(disjuncts)){
   #get the alternative disjuncts that you want to suppress
   alt_disjuncts <- disjuncts[-which(disjuncts == disjuncts[[dis]])]
@@ -37,6 +42,14 @@ for(dis in seq_along(disjuncts)){
     alt_disjuncts_suppressed <- paste0("!(", alt_disjuncts_suppressed, ")")
     # now we can create the expression that goes to selectCases()
     ctrl_expression <- paste0(cofactors_present, "*", alt_disjuncts_suppressed)
+    # addition to make it work with single disjunct
+    if (alt_disjuncts_suppressed == "!()"){
+      ctrl_expression <- cofactors_present
+    }
+    # addition to make it work with single conjunct
+    if (cofactors_present == "()"){
+      ctrl_expression <- alt_disjuncts_suppressed
+    }
     # now subset the data
     test_data <- ct2df(selectCases(ctrl_expression, data))
     ## NOW CALCULATE THE CORRELATION 
