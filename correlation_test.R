@@ -2,7 +2,7 @@ library(frscore)
  
 
 
-cna_cortest <- function(model, data){
+cna_cortest <- function(model, data, suppress_alt = TRUE){
   model <- cna::noblanks(model)
   lhss <- lhs(model) #grab the left hand side
   rhs <- rhs(model) # and the right hand side
@@ -31,28 +31,49 @@ cna_cortest <- function(model, data){
         test_factor <- toupper(test_factor) # just for the correlation test
         cofactors <- facs[[dis]][-factor_index]
         # "cofactors present" expression:
-        cofactors_present <- paste0(cofactors, sep = "*", collapse = "")
-        # remove possible trailing "*":
-        cofactors_present <- gsub("\\*$", "", cofactors_present)
-        # wrap in parentheses to be extra careful
-        cofactors_present <- paste0("(", cofactors_present, ")")
+        
+        if(length(cofactors) >= 1){
+          cofactors_present <- paste0(cofactors, sep = "*", collapse = "")
+          # remove possible trailing "*":
+          cofactors_present <- gsub("\\*$", "", cofactors_present)
+          # wrap in parentheses to be extra careful
+          cofactors_present <- paste0("(", cofactors_present, ")")  
+        } else {
+          cofactors_present <- NULL
+        }
+        
         # now create the expression to negate alternative disjuncts
-        alt_disjuncts_suppressed <- paste0(alt_disjuncts, sep = "+", collapse = "")
+        if(suppress_alt){
+          alt_disjuncts_suppressed <- paste0(alt_disjuncts, sep = "+", collapse = "")
         # remove possible trailing "+":
-        alt_disjuncts_suppressed <- gsub("\\+$", "", alt_disjuncts_suppressed)
-        alt_disjuncts_suppressed <- paste0("!(", alt_disjuncts_suppressed, ")")
+          alt_disjuncts_suppressed <- gsub("\\+$", "", alt_disjuncts_suppressed)
+          alt_disjuncts_suppressed <- paste0("!(", alt_disjuncts_suppressed, ")")
+        } else {
+          alt_disjuncts_suppressed <- NULL
+        }
         # now we can create the expression that goes to selectCases()
-        ctrl_expression <- paste0(cofactors_present, "*", alt_disjuncts_suppressed)
+        if(is.null(alt_disjuncts_suppressed) & is.null(cofactors_present)){
+          test_data <- data
+        } else {
+          ctrl_expression <- paste0(cofactors_present, 
+                                    "*", 
+                                    alt_disjuncts_suppressed)
+          ctrl_expression <- gsub("^\\*|\\*$", "", ctrl_expression)
+          test_data <- ct2df(selectCases(ctrl_expression, data))
+        }
+        
         # addition to make it work with single disjunct
-        if (alt_disjuncts_suppressed == "!()"){
-          ctrl_expression <- cofactors_present
-        }
+        # if (cofactors_present == "()"){
+        #   ctrl_expression <- alt_disjuncts_suppressed
+        # }
+        # 
+        # if (alt_disjuncts_suppressed == "!()"){
+        #   ctrl_expression <- cofactors_present
+        # }
         # addition to make it work with single conjunct
-        if (cofactors_present == "()"){
-          ctrl_expression <- alt_disjuncts_suppressed
-        }
+
         # now subset the data
-        test_data <- ct2df(selectCases(ctrl_expression, data))
+        
         ## NOW CALCULATE THE CORRELATION 
         facres[[factor_index]] <- cor(test_data[test_factor], test_data[toupper(rhs)])
         ## AND STORE INTO YOUR RESULTS  OBJECT FOR THE INNER LOOP
@@ -65,10 +86,10 @@ cna_cortest <- function(model, data){
 }
 
 
-model <- "A<->E"
+model <- "A + B*C <-> E"
 
 data <- d.error
-cna_cortest(model, data)
+cna_cortest(model, data, suppress_alt = T)
 
 
 # DGS is A + B*C <-> E but above model con/cov=1
