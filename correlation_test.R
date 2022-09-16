@@ -43,7 +43,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
         }
         
         # now create the expression to negate alternative disjuncts
-        if(suppress_alt){
+        if(suppress_alt & length(alt_disjuncts) >= 1){
           alt_disjuncts_suppressed <- paste0(alt_disjuncts, sep = "+", collapse = "")
         # remove possible trailing "+":
           alt_disjuncts_suppressed <- gsub("\\+$", "", alt_disjuncts_suppressed)
@@ -86,7 +86,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
 }
 
 
-model <- "A + B*C <-> E"
+model <- "B*C <-> E"
 
 data <- d.error
 cna_cortest(model, data, suppress_alt = T)
