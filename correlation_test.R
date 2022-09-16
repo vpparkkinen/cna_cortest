@@ -29,7 +29,7 @@ cna_cortest <- function(model, data){
           # "cofactors present" expression:
           cofactors_present <- paste0(cofactors, sep = "*", collapse = "")
           # remove possible trailing "*":
-          
+          cofactors_present <- gsub("\\*$", "", cofactors_present)
           # wrap in parentheses to be extra careful
           cofactors_present <- paste0("(", cofactors_present, ")*")  
         } else {
@@ -64,7 +64,7 @@ cna_cortest <- function(model, data){
   #}
   return(res)
 }
-model <- "A*c<->E"
+model <- "A*c + A*D + B*C <-> E"
 
 data <- d.error 
 cna_cortest(model = model, data = d.error)
