@@ -19,7 +19,7 @@ cna_cortest <- function(model, data){
     facres <- vector("numeric", length(disjuncts))
     names(facres) <- disjuncts[[1]]
     facres[[1]] <- cor(data[toupper(disjuncts)], data[toupper(rhs)])
-    res <- facres
+    res[[1]] <- facres
   } else {
     for(dis in seq_along(disjuncts)){
       #get the alternative disjuncts that you want to suppress
