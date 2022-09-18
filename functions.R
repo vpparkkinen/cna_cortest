@@ -62,7 +62,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
         # "cofactors present" expression:
         
         if(length(cofactors) >= 1){
-          cofactors_present <- paste0(cofactors, sep = "*", collapse = "")
+          cofactors_present <- paste0(cofactors, collapse = "*")
           # remove possible trailing "*":
           cofactors_present <- gsub("\\*$", "", cofactors_present)
           # wrap in parentheses to be extra careful
@@ -73,7 +73,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
         
         # now create the expression to negate alternative disjuncts
         if(suppress_alt & length(alt_disjuncts) >= 1){
-          alt_disjuncts_suppressed <- paste0(alt_disjuncts, sep = "+", collapse = "")
+          alt_disjuncts_suppressed <- paste0(alt_disjuncts, collapse = "+")
           # remove possible trailing "+":
           alt_disjuncts_suppressed <- gsub("\\+$", "", alt_disjuncts_suppressed)
           alt_disjuncts_suppressed <- paste0("!(", alt_disjuncts_suppressed, ")")
