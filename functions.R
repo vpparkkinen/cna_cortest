@@ -1,5 +1,35 @@
-library(frscore)
- 
+
+# function that adds a factor to a model, either as a disjunct, or
+# an extra conjunct to an existing disjunct.
+# 'fname' is the factor, not factor value, to be added to the model,
+# that is, value of 'fname' should be a capital letter
+add_factor <- function(model, fname = "X"){ 
+  fname <- toupper(fname) 
+  model <- cna::noblanks(model)
+  model <- gsub("^\\(|\\)$", "", model)
+  lhs <- lhs(model) #grab the left hand side
+  outcome <- rhs(model) # and the right hand side
+  disjuncts <- unlist(strsplit(lhs, "\\+")) # lhs disjuncts
+  as_disjunct <- sample(c(TRUE, FALSE), 1) # as its own disjunct, or not
+  neg_irfac <- sample(c(TRUE, FALSE), 1) # to negate, or not
+  if(neg_irfac){
+    fname <- tolower(fname)
+  }
+  if(as_disjunct){
+    newmodel_lhs <- paste0(lhs, "+", fname)
+    newmodel <- paste0(newmodel_lhs, "<->", outcome)
+  } else {
+    pick_disj <- sample(seq_along(disjuncts), 1)
+    new_disjunct <- paste0(disjuncts[pick_disj], "*", fname)
+    new_lhs <- paste0(c(disjuncts[-pick_disj], new_disjunct), collapse = "+")
+    newmodel <- paste0(new_lhs, "<->", outcome)
+  }
+  if(is.inus(newmodel)){
+    return(newmodel)
+  } else {
+    add_factor(model, fname = fname)
+  }
+}
 
 
 cna_cortest <- function(model, data, suppress_alt = TRUE){
@@ -14,7 +44,6 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
   res <- vector("list", length(disjuncts))
   names(res) <- disjuncts
   
-  #calculate unconditional correlation if lhs is single disjunct with single conjunct
   if(length(disjuncts) == 1 & nchar(disjuncts[1]) == 1){
     facres <- vector("numeric", length(disjuncts))
     names(facres) <- disjuncts[[1]]
@@ -45,7 +74,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
         # now create the expression to negate alternative disjuncts
         if(suppress_alt & length(alt_disjuncts) >= 1){
           alt_disjuncts_suppressed <- paste0(alt_disjuncts, sep = "+", collapse = "")
-        # remove possible trailing "+":
+          # remove possible trailing "+":
           alt_disjuncts_suppressed <- gsub("\\+$", "", alt_disjuncts_suppressed)
           alt_disjuncts_suppressed <- paste0("!(", alt_disjuncts_suppressed, ")")
         } else {
@@ -71,7 +100,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
         #   ctrl_expression <- cofactors_present
         # }
         # addition to make it work with single conjunct
-
+        
         # now subset the data
         
         ## NOW CALCULATE THE CORRELATION 
@@ -85,13 +114,3 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
   return(res)
 }
 
-
-model <- "B*C <-> E"
-
-data <- d.error
-cna_cortest(model, data, suppress_alt = T)
-
-
-# DGS is A + B*C <-> E but above model con/cov=1
-# looking at how individual factors correlate with outcome
-# will not help detect the model is incorrect
