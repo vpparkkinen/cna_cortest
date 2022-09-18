@@ -114,3 +114,36 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
   return(res)
 }
 
+generate_cand_models <- function(dat, 
+                                 factor_to_pick = "X", 
+                                 outcome,
+                                 cc_values = 
+                                   expand.grid(seq(.95,.7,-.05),
+                                               seq(.95,.7,-.05))
+                                 ){
+  if(nrow(cc_values) == 0){
+    return(NULL)
+  } else {
+    shuffle <- sample(1:nrow(cc_values), nrow(cc_values), replace = FALSE)
+    cc_values <- cc_values[shuffle,]
+    cnares <- cna(dat, 
+                  con = cc_values[1,1], 
+                  cov = cc_values[1,2],
+                  outcome = outcome)
+    asfs <- asf(cnares)[,2]
+    regex <- paste0(toupper(factor_to_pick), "|", tolower(factor_to_pick))
+    oks <- sapply(asfs, function(x) grepl(regex, x))
+    if(all(!oks)){
+      cc_values <- cc_values[-1,]
+      generate_cand_models(dat = dat, 
+                           factor_to_pick = factor_to_pick,
+                           outcome = outcome,
+                           cc_values = cc_values)
+    } else {
+      out <- asfs[oks]
+      return(out)
+    }
+  }
+}
+
+
