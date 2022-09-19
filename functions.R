@@ -115,7 +115,7 @@ cna_cortest <- function(model, data, suppress_alt = TRUE){
 }
 
 generate_cand_models <- function(dat, 
-                                 factor_to_pick = "X", 
+                                 regex = "[Xx]", #regex to detect a factor
                                  outcome,
                                  cc_values = 
                                    expand.grid(seq(.95,.7,-.05),
@@ -132,12 +132,13 @@ generate_cand_models <- function(dat,
                   cov = cc_values[rrow,2],
                   outcome = outcome)
     asfs <- asf(cnares)[,2]
-    regex <- paste0(toupper(factor_to_pick), "|", tolower(factor_to_pick))
+    #regex <- paste0(toupper(factor_to_pick), "|", tolower(factor_to_pick))
     oks <- sapply(asfs, function(x) grepl(regex, x))
     if(all(!oks)){
       cc_values <- cc_values[-rrow,]
       generate_cand_models(dat = dat, 
-                           factor_to_pick = factor_to_pick,
+                           #factor_to_pick = factor_to_pick,
+                           regex = regex,
                            outcome = outcome,
                            cc_values = cc_values)
     } else {
