@@ -124,17 +124,18 @@ generate_cand_models <- function(dat,
   if(nrow(cc_values) == 0){
     return(NULL)
   } else {
-    shuffle <- sample(1:nrow(cc_values), nrow(cc_values), replace = FALSE)
-    cc_values <- cc_values[shuffle,]
+    #shuffle <- sample(1:nrow(cc_values), nrow(cc_values), replace = FALSE)
+    #cc_values <- cc_values[shuffle,]
+    rrow <- sample(1:nrow(cc_values), 1)
     cnares <- cna(dat, 
-                  con = cc_values[1,1], 
-                  cov = cc_values[1,2],
+                  con = cc_values[rrow,1], 
+                  cov = cc_values[rrow,2],
                   outcome = outcome)
     asfs <- asf(cnares)[,2]
     regex <- paste0(toupper(factor_to_pick), "|", tolower(factor_to_pick))
     oks <- sapply(asfs, function(x) grepl(regex, x))
     if(all(!oks)){
-      cc_values <- cc_values[-1,]
+      cc_values <- cc_values[-rrow,]
       generate_cand_models(dat = dat, 
                            factor_to_pick = factor_to_pick,
                            outcome = outcome,
